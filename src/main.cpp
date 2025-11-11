@@ -1,16 +1,17 @@
 #include <iostream>
-#include "../include/ReadCSV.hpp"
+#include <string>
+#include "../include/RobotFactory.hpp"
 
 using namespace std;
 
 int main() {
-    string filename = "World-Stock-Prices-Dataset.csv";
 
-    // # of rows to read in csv up to 300,000
-    int records = 10000;
-    unordered_map<string, vector<StockData>> tickerGroups = readAndGroupByTicker(filename, records);
-    displayTickerSummary(tickerGroups);
-    
+    // BARE DESIGN
+    // Robot will buy stock given current date and specific stock.
+    AbstractRobotFactory *fac = new RobotFactory;
+    AbstractRobot *robot[3];
+    robot[0] = fac->createRobot();
+    robot[0]->buy("AMZN", 1);
 
     return 0;
 }

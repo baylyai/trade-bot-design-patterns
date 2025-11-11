@@ -5,11 +5,12 @@
 using namespace std;
 
 class RobotFactory : public AbstractRobotFactory {
-    Robot* createRobot();
+    public:
+        Robot* createRobot();
 };
 
 Robot* RobotFactory::createRobot() {
-    
+    return new Robot();
 }
 
 

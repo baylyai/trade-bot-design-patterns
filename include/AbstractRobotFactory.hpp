@@ -5,7 +5,8 @@
 using namespace std;
 
 class AbstractRobotFactory {
-    virtual Robot *createRobot() = 0;
+    public:
+        virtual Robot *createRobot() = 0;
 };
 
 
