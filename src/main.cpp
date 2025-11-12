@@ -12,6 +12,12 @@ int main() {
     AbstractRobot *robot[3];
     robot[0] = fac->createRobot();
     robot[0]->buy("AMZN", 1);
-
+    robot[0]->buy("RBLX", 2);
+    robot[0]->buy("CROX", 5);
+    robot[0]->summary();
+    robot[0]->updateDate();
+    robot[0]->buy("PTON", 15);
+    robot[0]->buy("UBER", 3);
+    robot[0]->summary();
     return 0;
 }

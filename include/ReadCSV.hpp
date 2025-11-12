@@ -61,6 +61,22 @@ vector<StockData> readCSVToStockData(const string& filename, const int records) 
     return stockDataList;
 }
 
+// Function to get unique Dates from StockData objects
+vector<string> getUniqueDates(const vector<StockData>& stockDataList) {
+    unordered_map<string, bool> dateMap;
+    vector<string> uniqueDates;
+    
+    for (const auto& stock : stockDataList) {
+        // If date not already in map, add it
+        if (dateMap.find(stock.Date) == dateMap.end()) {
+            dateMap[stock.Date] = true;
+            uniqueDates.push_back(stock.Date);
+        }
+    }
+    
+    return uniqueDates;
+}
+
 // Function to convert StockData vector to market data hash map
 unordered_map<string, unordered_map<string, double>> convertToMarketData(const vector<StockData>& stockDataList, bool useOpenPrice = true) {
     unordered_map<string, unordered_map<string, double>> marketData;
