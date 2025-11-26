@@ -8,10 +8,14 @@
 #include <string>
 #include "AbstractRobot.hpp"
 #include "ReadCSV.hpp"
+#include "StrategyLowRisk.hpp"
+#include "StrategyRandom.hpp"
 
 using namespace std;
 
 class Robot : public AbstractRobot {
+    private:
+        AbstractStrategy *strat;
     public:
         Robot() {
             // lets say the current date is:
@@ -80,6 +84,27 @@ class Robot : public AbstractRobot {
                 stockBalance -= (openPrice * quant);
                 portfolio.push_back({ticker, quant, openPrice, date, "SOLD"});
             }
+        }
+
+        // Setting strategy and storing in "AbstractStrategy *strat"
+        void setStrategy(int type) {
+            if(strat) {
+                delete strat;
+                strat = nullptr;
+            }
+            if(type <= 0) {
+                strat = new StrategyRandom;
+            } else if(type == 1) {
+                strat = new StrategyLowRisk;
+            } else {
+                //strat = new StrategyDecorator;
+            }
+        }
+
+        // Using "AbstractStrategy *strat" to call its respective algorithm
+        // Stock quantity "1" just for simplicity
+        void executeStrat() {
+            buy(strat->pickStock(), 1);
         }
 
         // Simulating day to day trading based on unique days in our data

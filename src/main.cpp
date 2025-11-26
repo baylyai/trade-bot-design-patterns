@@ -10,7 +10,17 @@ int main() {
     // Robot will buy stock given current date and specific stock.
     AbstractRobotFactory *fac = new RobotFactory;
     AbstractRobot *robot[3];
+
     robot[0] = fac->createRobot();
+    
+    // Pick strategy
+    robot[0]->setStrategy(0);
+
+    // executeStrat will call the algorithm
+    // algorithm will return a string for ticker
+    // then calls buy()
+    robot[0]->executeStrat();
+
     robot[0]->buy("AMZN", 1);
     robot[0]->buy("RBLX", 2);
     robot[0]->buy("CROX", 5);
