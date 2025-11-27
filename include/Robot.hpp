@@ -7,65 +7,37 @@
 #include <algorithm>
 #include <string>
 #include "AbstractRobot.hpp"
-#include "ReadCSV.hpp"
+#include "StockData.hpp"
 #include "StrategyLowRisk.hpp"
 #include "StrategyRandom.hpp"
+#include "StrategyBasic.hpp"
+
 
 using namespace std;
 
 class Robot : public AbstractRobot {
     private:
+        StockMarket *stocks;
         AbstractStrategy *strat;
     public:
         Robot() {
-            // lets say the current date is:
-            date = "2025-06-23";
-
-            balance = 5000.00;
+            balance = 100000;
             stockBalance = 0;
-            
-            string filename = "World-Stock-Prices-Dataset.csv";
-
-            // # of rows to read in csv up to 300,000
-            int records = 10000;
-
-            // read csv
-            vector<StockData> stockDataList = readCSVToStockData(filename, records);
-
-            // hash map: ticker -> date -> open price
-            marketData = convertToMarketData(stockDataList, true);
-
-            // unique dates for incremeting later
-            dates = getUniqueDates(stockDataList);
-
-            for (int i = 0; i < dates.size(); i++) {
-                if (dates[i] == date) {
-                    indexDate = i;
-                    break;
-                }
-            }
-
-
-            // hash map when enter ticker returns all stock instances
-            //unordered_map<string, vector<StockData>> tickerGroups = groupStockDataByTicker(stockDataList);
-            //displayTickerSummary(tickerGroups, "AMZN");
-
-            // hash map when enter date returns all tickers that are open
-            unordered_map<string, vector<StockData>> dateGroups = groupStockDataByDate(stockDataList);
-            displayDateSummary(dateGroups, date);
-            
         }
-
+        void getStockData(StockMarket *data) {
+            stocks = data;
+        }
         void buy(string ticker, uint quant) {
             // check price
-            double openPrice = marketData[ticker][date];
+            double openPrice = stocks->marketData[ticker][stocks->date];
+            cout << "\nOPEN PRICE HERE \n" << openPrice;
 
             // check can afford
             if((quant * openPrice) < balance) {
                 balance -= (openPrice * quant);
                 stockBalance += (openPrice * quant);
                 // keeping track of history
-                portfolio.push_back({ticker, quant, openPrice, date, "BOUGHT"});
+                portfolio.push_back({ticker, quant, openPrice, stocks->date, "BOUGHT"});
                 if(!wallet[ticker]) {
                     wallet[ticker] = quant;
                 } else {
@@ -76,7 +48,7 @@ class Robot : public AbstractRobot {
         }
 
         void sell(string ticker, uint quant) {
-            double openPrice = marketData[ticker][date];
+            double openPrice = stocks->marketData[ticker][date];
             // check has stock
             if(wallet[ticker] >= quant) {
                 wallet[ticker] -= quant;
@@ -92,12 +64,15 @@ class Robot : public AbstractRobot {
                 delete strat;
                 strat = nullptr;
             }
-            if(type <= 0) {
-                strat = new StrategyRandom;
-            } else if(type == 1) {
-                strat = new StrategyLowRisk;
-            } else {
-                //strat = new StrategyDecorator;
+            switch(type) {
+                case 0:
+                    strat = new StrategyRandom();
+                    break;
+                case 1:
+                    strat = new StrategyLowRisk();
+                    break;
+                default:
+                    strat = new StrategyBasic();
             }
         }
 
@@ -107,17 +82,21 @@ class Robot : public AbstractRobot {
             buy(strat->pickStock(), 1);
         }
 
+        /*
         // Simulating day to day trading based on unique days in our data
         void updateDate() {
             if (indexDate < 0 || indexDate >= dates.size() - 1) {
                 cout << "Out of bounds" << endl; // or throw an exception
             } else {
                 date = dates[indexDate - 1];
+                vector<StockData> stonk = dateGroups[date];
+                indexDate -= 1;
             }
         }
+        */
 
         void summary() {
-            cout << "Date: " << date << endl;
+            cout << "Date: " << stocks->date << endl;
             cout << "=== BALANCE ===" << endl;
             cout << "Balance: " << balance << endl;
             cout << "Stocks: " << stockBalance << endl;

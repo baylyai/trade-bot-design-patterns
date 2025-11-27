@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include "../include/RobotFactory.hpp"
+#include "../include/StockData.hpp"
 
 using namespace std;
 
@@ -10,8 +11,11 @@ int main() {
     // Robot will buy stock given current date and specific stock.
     AbstractRobotFactory *fac = new RobotFactory;
     AbstractRobot *robot[3];
+    StockMarket Stocks;
+
 
     robot[0] = fac->createRobot();
+    robot[0]->getStockData(&Stocks);
     
     // Pick strategy
     robot[0]->setStrategy(0);
@@ -25,9 +29,17 @@ int main() {
     robot[0]->buy("RBLX", 2);
     robot[0]->buy("CROX", 5);
     robot[0]->summary();
-    robot[0]->updateDate();
-    robot[0]->buy("PTON", 15);
-    robot[0]->buy("UBER", 3);
+    Stocks.updateDate();
+    robot[0]->buy("DAL", 1);
+    Stocks.updateDate();
+    robot[0]->buy("DAL", 1);
+    Stocks.updateDate();
+    robot[0]->buy("DAL", 1);
     robot[0]->summary();
+    
+    robot[0]->buy("PTON", 15);
+    Stocks.updateDate();
+    robot[0]->summary();
+    
     return 0;
 }

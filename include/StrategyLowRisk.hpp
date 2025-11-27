@@ -7,10 +7,13 @@ using namespace std;
 
 class StrategyLowRisk : public AbstractStrategy {
     public:
+        StrategyLowRisk() {
+       
+        }
         ~StrategyLowRisk() {}
         string pickStock() {
             // need logic here
-            // returning DAL as an example
+            // returning KO as an example
             return "KO";
         }
 };

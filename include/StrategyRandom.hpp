@@ -7,6 +7,9 @@ using namespace std;
 
 class StrategyRandom : public AbstractStrategy {
     public:
+        StrategyRandom() {
+         
+        }
         ~StrategyRandom() {}
         string pickStock() {
             // need logic here
