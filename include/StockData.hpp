@@ -7,7 +7,7 @@
 #include <sstream>
 #include <unordered_map>
 #include "AbstractStrategy.hpp"
-//#include "DataManipulation.hpp"
+
 using namespace std;
 
 struct StockData {
@@ -26,17 +26,19 @@ public:
     int indexDate;
     string date;
     vector<string> dates;
+    vector<string> allTickers;
     unordered_map<string, unordered_map<string, double>> marketData;
     unordered_map<string, vector<StockData>> dateGroups;
+    unordered_map<string, vector<double>> stockPrices;
     vector<StockData> stockDataList;
     StockMarket() {
         // lets say the current date is:
-        date = "2025-06-23";
+        date = "2020-06-23";
         
         string filename = "World-Stock-Prices-Dataset.csv";
 
         // # of rows to read in csv up to 300,000
-        int records = 10000;
+        int records = 300000;
 
         ifstream file(filename);
         if (!file.is_open()) {
@@ -88,6 +90,7 @@ public:
         for (int i = 0; i < dates.size(); i++) {
             if (dates[i] == date) {
                 indexDate = i;
+                cout << "\nINDEX DATE \n" << indexDate;
                 break;
             }
         }
@@ -96,15 +99,76 @@ public:
         //displayTickerSummary(tickerGroups, "AMZN");
 
         // hash map when enter date returns all tickers that are open
+        allTickers = getUniqueTickers(stockDataList);
+        for(const string& ticker : allTickers) {
+            stockPrices[ticker] = {};
+        }
+        for(const string& ticker : allTickers) {
+            if(marketData[ticker][date])
+                stockPrices[ticker].push_back(marketData[ticker][date]);
+        }
+
         dateGroups = groupStockDataByDate(stockDataList);
         displayDateSummary(dateGroups, date);
-        
     }
     void updateDate() {
         date = dates[indexDate - 1];
         Stocks = dateGroups[date];
+        checkStocks();
         indexDate -= 1;
     }
+    void attach(AbstractStrategy* strat) {
+        observers.push_back(strat);
+    }
+
+    void detach(AbstractStrategy* strat) {
+        observers.erase(remove(observers.begin(), observers.end(), strat), observers.end());
+    }
+
+    void notify(vector<string> tickers2Buy) {
+        for(int i = 0; i < observers.size(); i++) {
+            observers[i]->setStocks(tickers2Buy);
+        }
+    }
+
+    void checkStocks() {
+        vector<string> buyStocks;
+        for(const string& ticker : allTickers) {
+            if(marketData[ticker][date]) {
+                double current = marketData[ticker][date];
+                double past = stockPrices[ticker].back();
+
+                // Check if price is decreasing
+                if(current < past) {
+                    // if it is then push current
+                    stockPrices[ticker].push_back(current);
+
+                    // if price increased but had been decreasing for at least n days
+                } else if(stockPrices[ticker].size() >= 8) {
+
+                    // add ticker to vector for buying
+                    buyStocks.push_back(ticker);
+
+                    // reset price vector
+                    stockPrices[ticker].clear();
+                    stockPrices[ticker].push_back(current);
+                } else {
+                    stockPrices[ticker].clear();
+                    stockPrices[ticker].push_back(current);
+                }
+            }
+        }
+        // Automatically notify when a stock is decreasing for at least 3 days
+        if(!buyStocks.empty()) {
+            notify(buyStocks);
+            buyStocks.clear();
+        } 
+    }
+
+    const vector<StockData>& getMarketData() const {
+        return Stocks;
+    }
+
     vector<string> getUniqueTickers(const vector<StockData>& stockDataList) {
         unordered_map<string, bool> tickerMap;
         vector<string> uniqueTickers;
@@ -134,6 +198,7 @@ public:
         
         return uniqueDates;
     }
+
 
     // Function to convert StockData vector to market data hash map
     unordered_map<string, unordered_map<string, double>> convertToMarketData(const vector<StockData>& stockDataList, bool useOpenPrice = true) {
@@ -169,31 +234,7 @@ public:
         
         return dateGroups;
     }
-    void attach(AbstractStrategy* strat) {
-        observers.push_back(strat);
-    }
 
-    void detach(AbstractStrategy* strat) {
-        observers.erase(
-            remove(observers.begin(), observers.end(), strat),
-            observers.end()
-        );
-    }
-
-    void notify() {
-        for(int i = 0; i < observers.size(); i++) {
-            //observers[i]->update(marketData);
-        }
-    }
-
-    void setMarketData(const vector<StockData>& data) {
-        Stocks = data;
-        notify();  // Automatically notify observers when data changes
-    }
-
-    const vector<StockData>& getMarketData() const {
-        return Stocks;
-    }
     void displayDateSummary(const unordered_map<string, vector<StockData>>& dateGroups, const string specificDate) {
         
         /*

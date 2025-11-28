@@ -8,11 +8,11 @@ using namespace std;
 class StrategyBasic : public AbstractStrategy {
     public:
         ~StrategyBasic() {}
-        string pickStock() {
-            // need logic here
-            
-            // returning TM as an example
-            return "TM";
+        vector<string> getStock() {
+            return buyTickers;
+        }
+        void setStocks(vector<string> tickers) {
+            buyTickers = tickers;
         }
 };
 

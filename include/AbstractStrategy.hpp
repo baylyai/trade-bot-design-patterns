@@ -8,16 +8,12 @@ using namespace std;
 class AbstractStrategy {
     public:
         virtual ~AbstractStrategy() = default;
-        virtual string pickStock() = 0;
-        /*
-        void update(const vector<StockData>& stockData) {
-            // Store the latest stock data
-            this->stockData = stockData;
-        }
-        */
+        virtual void setStocks(vector<string>) = 0;
+        virtual vector<string> getStock() = 0;
 
     protected:
         //vector<StockData> stockData;
+        vector<string> buyTickers;
 };
 
 #endif

@@ -30,7 +30,6 @@ class Robot : public AbstractRobot {
         void buy(string ticker, uint quant) {
             // check price
             double openPrice = stocks->marketData[ticker][stocks->date];
-            cout << "\nOPEN PRICE HERE \n" << openPrice;
 
             // check can afford
             if((quant * openPrice) < balance) {
@@ -67,19 +66,28 @@ class Robot : public AbstractRobot {
             switch(type) {
                 case 0:
                     strat = new StrategyRandom();
+                    stocks->attach(strat);
                     break;
                 case 1:
                     strat = new StrategyLowRisk();
+                    stocks->attach(strat);
                     break;
                 default:
                     strat = new StrategyBasic();
+                    stocks->attach(strat);
             }
         }
 
         // Using "AbstractStrategy *strat" to call its respective algorithm
         // Stock quantity "1" just for simplicity
         void executeStrat() {
-            buy(strat->pickStock(), 1);
+            vector<string> temp = strat->getStock();
+            if(!temp.empty()) {
+                for(int i = 0; i < temp.size(); i++) {
+                    buy(temp[i], 1);
+                }
+                temp.clear();
+            }
         }
 
         /*
@@ -96,6 +104,7 @@ class Robot : public AbstractRobot {
         */
 
         void summary() {
+            cout << "\n";
             cout << "Date: " << stocks->date << endl;
             cout << "=== BALANCE ===" << endl;
             cout << "Balance: " << balance << endl;

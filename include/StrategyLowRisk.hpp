@@ -11,10 +11,11 @@ class StrategyLowRisk : public AbstractStrategy {
        
         }
         ~StrategyLowRisk() {}
-        string pickStock() {
-            // need logic here
-            // returning KO as an example
-            return "KO";
+        vector<string> getStock() {
+            return buyTickers;
+        }
+        void setStocks(vector<string> tickers) {
+            buyTickers = tickers;
         }
 };
 

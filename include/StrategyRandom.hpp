@@ -11,10 +11,11 @@ class StrategyRandom : public AbstractStrategy {
          
         }
         ~StrategyRandom() {}
-        string pickStock() {
-            // need logic here
-            // returning DAL as an example
-            return "DAL";
+        vector<string> getStock() {
+            return buyTickers;
+        }
+        void setStocks(vector<string> tickers) {
+            buyTickers = tickers;
         }
 };
 
