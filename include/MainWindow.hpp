@@ -11,7 +11,7 @@
 #include <QHBoxLayout>
 
 #include "RobotFactory.hpp"
-#include "StockData.hpp"    // for StockMarket
+#include "StockData.hpp"
 
 class MainWindow : public QMainWindow
 {
@@ -20,7 +20,6 @@ public:
     ~MainWindow();
 
 private:
-    // event handlers (no Q_OBJECT needed when we use new-style connect)
     void onStrategyChanged(int index);
     void onNextDayClicked();
     void onExecuteStratClicked();
@@ -50,4 +49,4 @@ private:
     QTextEdit   *logView;
 };
 
-#endif // MAINWINDOW_HPP
+#endif
