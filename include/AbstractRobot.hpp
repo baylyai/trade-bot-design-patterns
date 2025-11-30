@@ -17,6 +17,8 @@ class AbstractRobot {
         virtual void setStrategy(int type) = 0;
         virtual void executeStrat() = 0;
         virtual void getStockData(StockMarket*) = 0;
+        virtual void updateStockBalance() = 0;
+        virtual void sellAll() = 0;
     protected:
         double balance;
         double stockBalance;

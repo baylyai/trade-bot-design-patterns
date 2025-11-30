@@ -11,10 +11,10 @@ class StrategyRandom : public AbstractStrategy {
          
         }
         ~StrategyRandom() {}
-        vector<string> getStock() {
+        vector<string> getStock(int type) {
             return buyTickers;
         }
-        void setStocks(vector<string> tickers) {
+        void setStocks(vector<string> tickers, int type) {
             buyTickers = tickers;
         }
 };

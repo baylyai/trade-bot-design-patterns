@@ -115,6 +115,7 @@ public:
         date = dates[indexDate - 1];
         Stocks = dateGroups[date];
         checkStocks();
+        sellStocks();
         indexDate -= 1;
     }
     void attach(AbstractStrategy* strat) {
@@ -125,44 +126,102 @@ public:
         observers.erase(remove(observers.begin(), observers.end(), strat), observers.end());
     }
 
-    void notify(vector<string> tickers2Buy) {
+    void notify(vector<string> tickers, int type) {
         for(int i = 0; i < observers.size(); i++) {
-            observers[i]->setStocks(tickers2Buy);
+            observers[i]->setStocks(tickers, type);
         }
     }
-
+    
     void checkStocks() {
         vector<string> buyStocks;
+        const int BUY_LIMIT = 4;
+        const int LOOKBACK_DAYS = 5; // The period to check for the recent lowest price
+
         for(const string& ticker : allTickers) {
-            if(marketData[ticker][date]) {
-                double current = marketData[ticker][date];
-                double past = stockPrices[ticker].back();
 
-                // Check if price is decreasing
-                if(current < past) {
-                    // if it is then push current
-                    stockPrices[ticker].push_back(current);
+            if (buyStocks.size() >= BUY_LIMIT) {
+                break; 
+            }
+            
+            if(!marketData[ticker].count(date)) {
+                continue; // Skip if no data for today
+            }
+            double currentPrice = marketData[ticker][date];
 
-                    // if price increased but had been decreasing for at least n days
-                } else if(stockPrices[ticker].size() >= 8) {
+            // Ensure the full price history vector (stockPrices[ticker]) has enough data
+            if (stockPrices[ticker].empty()) {
+                stockPrices[ticker].push_back(currentPrice);
+                continue; // Need more history before we can make a decision
+            }
+            
+            double yesterdayPrice = stockPrices[ticker].back();
+            
+            // Always update the full history vector with the current price
+            stockPrices[ticker].push_back(currentPrice); 
+            
+            // Condition A: Price Increased
+            if (currentPrice > yesterdayPrice) {
+                
+                // Limit the check to the last LOOKBACK_DAYS prices
+                int start_index = max(0, (int)stockPrices[ticker].size() - (LOOKBACK_DAYS + 1));
+                
+                // Find the minimum price in the lookback window (excluding today's price)
+                double minPrice = currentPrice; 
+                for (size_t i = start_index; i < stockPrices[ticker].size() - 1; ++i) {
+                    minPrice = min(minPrice, stockPrices[ticker][i]);
+                }
 
-                    // add ticker to vector for buying
+                if (yesterdayPrice <= minPrice) { 
                     buyStocks.push_back(ticker);
-
-                    // reset price vector
-                    stockPrices[ticker].clear();
-                    stockPrices[ticker].push_back(current);
-                } else {
-                    stockPrices[ticker].clear();
-                    stockPrices[ticker].push_back(current);
                 }
             }
         }
-        // Automatically notify when a stock is decreasing for at least 3 days
+        
         if(!buyStocks.empty()) {
-            notify(buyStocks);
-            buyStocks.clear();
+            notify(buyStocks, 0);
         } 
+    }
+    
+    void sellStocks() {
+        vector<string> sellStocks;
+        const int LOOKBACK_DAYS = 5; // The period to check for the recent highest price
+        
+        for(const string& ticker : allTickers) { // Check all tickers for sell signals
+    
+            if(!marketData[ticker].count(date)) {
+                continue; // Skip if no data for today
+            }
+            
+            double currentPrice = marketData[ticker][date];
+            
+            // Ensure the full price history vector has enough data
+            if (stockPrices[ticker].size() < 2) {
+                continue; // Need at least 2 prices for comparison
+            }
+            
+            double yesterdayPrice = stockPrices[ticker][stockPrices[ticker].size() - 2];
+                        
+            // Condition: Price Decreased (inverse of buy logic)
+            if (currentPrice < yesterdayPrice) {
+                // Limit the check to the last LOOKBACK_DAYS prices
+                int start_index = max(0, (int)stockPrices[ticker].size() - (LOOKBACK_DAYS + 1));
+                
+                // Find the maximum price in the lookback window (excluding today's price)
+                double maxPrice = currentPrice;
+                for (size_t i = start_index; i < stockPrices[ticker].size() - 1; ++i) {
+                    maxPrice = max(maxPrice, stockPrices[ticker][i]);
+                }
+                
+                // Add to sell list if yesterday's price was at/near the recent peak and today it dropped
+                if (yesterdayPrice >= maxPrice) {
+                    sellStocks.push_back(ticker);
+                }
+            }
+        }
+        
+        if(!sellStocks.empty()) {
+            notify(sellStocks, 1);
+        }
     }
 
     const vector<StockData>& getMarketData() const {

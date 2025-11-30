@@ -27,6 +27,21 @@ class Robot : public AbstractRobot {
         void getStockData(StockMarket *data) {
             stocks = data;
         }
+        void updateStockBalance() {
+            stockBalance = 0;
+            for(const auto& ticker : wallet) {
+                double openPrice = stocks->marketData[ticker.first][stocks->date];
+                int quantity = ticker.second;
+                stockBalance += (openPrice * quantity);
+            }
+        }
+        void sellAll() {
+            for(const auto& ticker : wallet) {
+                if(ticker.second > 0)
+                    sell(ticker.first, ticker.second);
+            }
+            updateStockBalance();
+        }
         void buy(string ticker, uint quant) {
             // check price
             double openPrice = stocks->marketData[ticker][stocks->date];
@@ -34,7 +49,7 @@ class Robot : public AbstractRobot {
             // check can afford
             if((quant * openPrice) < balance) {
                 balance -= (openPrice * quant);
-                stockBalance += (openPrice * quant);
+                //stockBalance += (openPrice * quant);
                 // keeping track of history
                 portfolio.push_back({ticker, quant, openPrice, stocks->date, "BOUGHT"});
                 if(!wallet[ticker]) {
@@ -47,13 +62,13 @@ class Robot : public AbstractRobot {
         }
 
         void sell(string ticker, uint quant) {
-            double openPrice = stocks->marketData[ticker][date];
+            double openPrice = stocks->marketData[ticker][stocks->date];
             // check has stock
             if(wallet[ticker] >= quant) {
                 wallet[ticker] -= quant;
                 balance += (openPrice * quant);
-                stockBalance -= (openPrice * quant);
-                portfolio.push_back({ticker, quant, openPrice, date, "SOLD"});
+                //stockBalance -= (openPrice * quant);
+                portfolio.push_back({ticker, quant, openPrice, stocks->date, "SOLD"});
             }
         }
 
@@ -81,13 +96,22 @@ class Robot : public AbstractRobot {
         // Using "AbstractStrategy *strat" to call its respective algorithm
         // Stock quantity "1" just for simplicity
         void executeStrat() {
-            vector<string> temp = strat->getStock();
+            vector<string> temp = strat->getStock(0);
             if(!temp.empty()) {
                 for(int i = 0; i < temp.size(); i++) {
                     buy(temp[i], 1);
                 }
-                temp.clear();
             }
+            temp = strat->getStock(1);
+            if(!temp.empty()) {
+                for(int i = 0; i < temp.size(); i++) {
+                    int quantity = wallet[temp[i]];
+                    if(wallet[temp[i]] && (quantity > 0)) {
+                        sell(temp[i], quantity);
+                    }
+                }
+            }
+            updateStockBalance();
         }
 
         /*

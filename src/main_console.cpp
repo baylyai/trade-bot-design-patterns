@@ -29,6 +29,8 @@ int main() {
         robot[0]->executeStrat();
         robot[0]->summary();
     }
+    robot[0]->sellAll();
+    robot[0]->summary();
     /*
     robot[0]->buy("AMZN", 1);
     robot[0]->buy("RBLX", 2);
