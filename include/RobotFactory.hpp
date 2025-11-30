@@ -1,17 +1,15 @@
-#ifndef ROBOTFACTORY_H
-#define ROBOTFACTORY_H
+#ifndef ROBOTFACTORY_HPP
+#define ROBOTFACTORY_HPP
+
 #include "AbstractRobotFactory.hpp"
+#include "Robot.hpp"
 
-using namespace std;
-
-class RobotFactory : public AbstractRobotFactory {
-    public:
-        Robot* createRobot();
+class RobotFactory : public AbstractRobotFactory
+{
+public:
+    AbstractRobot* createRobot() override {
+        return new Robot();
+    }
 };
-
-Robot* RobotFactory::createRobot() {
-    return new Robot();
-}
-
 
 #endif

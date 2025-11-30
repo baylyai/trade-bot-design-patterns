@@ -1,13 +1,12 @@
-#ifndef ABSTRACTROBOTFACTORY_H
-#define ABSTRACTROBOTFACTORY_H
-#include "Robot.hpp"
+#ifndef ABSTRACTROBOTFACTORY_HPP
+#define ABSTRACTROBOTFACTORY_HPP
 
-using namespace std;
+#include "AbstractRobot.hpp"
 
-class AbstractRobotFactory {
-    public:
-        virtual Robot *createRobot() = 0;
+class AbstractRobotFactory
+{
+public:
+    virtual AbstractRobot* createRobot() = 0;
 };
-
 
 #endif

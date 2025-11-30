@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-qt-gui",
+      "type": "shell",
+      "command": "C:/Qt/Tools/mingw1310_64/bin/g++.exe",
+      "args": [
+      "-std=c++17",
+      "${workspaceFolder}/src/main.cpp",
+      "${workspaceFolder}/src/MainWindow.cpp",
+
+      "-I${workspaceFolder}/include",
+
+      "-IC:/Qt/6.10.1/mingw_64/include",
+      "-IC:/Qt/6.10.1/mingw_64/include/QtWidgets",
+      "-IC:/Qt/6.10.1/mingw_64/include/QtCore",
+      "-IC:/Qt/6.10.1/mingw_64/include/QtGui",
+
+      "-LC:/Qt/6.10.1/mingw_64/lib",
+      "-lQt6Widgets",
+      "-lQt6Gui",
+      "-lQt6Core",
+
+      "-o",
+      "${workspaceFolder}/build/tradebot-gui.exe"
+      ],
+
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$gcc",
+      "detail": "Build Qt GUI with Qt MinGW"
+    }
+  ]
+}
