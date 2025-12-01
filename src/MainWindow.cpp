@@ -88,38 +88,18 @@ MainWindow::MainWindow(QWidget *parent)
 
     central->setLayout(mainLayout);
 
-    QObject::connect(
-        strategyCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
-        this, [this](int index) { onStrategyChanged(index); });
+    connect(strategyCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onStrategyChanged);
 
-    QObject::connect(
-        nextDayButton, &QPushButton::clicked,
-        this, [this]() { onNextDayClicked(); });
+    connect(nextDayButton, &QPushButton::clicked, this, &MainWindow::onNextDayClicked);
+    connect(executeStratButton, &QPushButton::clicked, this, &MainWindow::onExecuteStratClicked);
+    connect(runNDaysButton, &QPushButton::clicked, this, &MainWindow::onRunNDaysClicked);
 
-    QObject::connect(
-        executeStratButton, &QPushButton::clicked,
-        this, [this]() { onExecuteStratClicked(); });
+    connect(buyButton, &QPushButton::clicked, this, &MainWindow::onBuyClicked);
+    connect(sellButton, &QPushButton::clicked, this, &MainWindow::onSellClicked);
+    connect(sellAllButton, &QPushButton::clicked, this, &MainWindow::onSellAllClicked);
 
-    QObject::connect(
-        runNDaysButton, &QPushButton::clicked,
-        this, [this]() { onRunNDaysClicked(); });
+    connect(summaryButton, &QPushButton::clicked, this, &MainWindow::onSummaryClicked);
 
-    QObject::connect(
-        buyButton, &QPushButton::clicked,
-        this, [this]() { onBuyClicked(); });
-
-    QObject::connect(
-        sellButton, &QPushButton::clicked,
-        this, [this]() { onSellClicked(); });
-
-    QObject::connect(
-        sellAllButton, &QPushButton::clicked,
-        this, [this]() { onSellAllClicked(); });
-
-
-    QObject::connect(
-        summaryButton, &QPushButton::clicked,
-        this, [this]() { onSummaryClicked(); });
 
     setWindowTitle("Stock Trading Robot GUI");
     resize(700, 500);
@@ -207,7 +187,6 @@ void MainWindow::onSellAllClicked()
 {
     if (!robot) return;
 
-    // call Robot::sellAll()
     robot->sellAll();
 
     appendLog("Sell All: closed all positions.");
