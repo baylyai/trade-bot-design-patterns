@@ -26,6 +26,8 @@ private:
     void onRunNDaysClicked();
     void onBuyClicked();
     void onSummaryClicked();
+    void onSellClicked();
+    void onSellAllClicked();
 
     void appendLog(const QString &text);
 
@@ -34,19 +36,27 @@ private:
     AbstractRobot        *robot;
     StockMarket           stocks;
 
-    // Widgets
     QComboBox   *strategyCombo;
     QPushButton *nextDayButton;
     QPushButton *executeStratButton;
     QPushButton *runNDaysButton;
 
     QSpinBox    *daysSpin;
+
+    // Buy controls
     QLineEdit   *tickerEdit;
     QSpinBox    *qtySpin;
     QPushButton *buyButton;
+
+    // Sell controls
+    QLineEdit   *sellTickerEdit;
+    QSpinBox    *sellQtySpin;
+    QPushButton *sellButton;
+    QPushButton *sellAllButton;
     QPushButton *summaryButton;
 
     QTextEdit   *logView;
+
 };
 
 #endif

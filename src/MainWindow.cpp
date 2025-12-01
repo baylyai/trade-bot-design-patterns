@@ -55,6 +55,23 @@ MainWindow::MainWindow(QWidget *parent)
     buyLayout->addWidget(qtySpin);
     buyLayout->addWidget(buyButton);
 
+    // Sell row
+    QHBoxLayout *sellLayout = new QHBoxLayout;
+    sellTickerEdit = new QLineEdit(this);
+    sellQtySpin    = new QSpinBox(this);
+    sellQtySpin->setRange(1, 100000);
+    sellQtySpin->setValue(10);
+    sellButton     = new QPushButton("Sell", this);
+    sellAllButton  = new QPushButton("Sell All", this);
+
+    sellLayout->addWidget(new QLabel("Sell Ticker:", this));
+    sellLayout->addWidget(sellTickerEdit);
+    sellLayout->addWidget(new QLabel("Qty:", this));
+    sellLayout->addWidget(sellQtySpin);
+    sellLayout->addWidget(sellButton);
+    sellLayout->addWidget(sellAllButton);
+
+
     // Summary button + log
     summaryButton = new QPushButton("Show Summary (console)", this);
     logView       = new QTextEdit(this);
@@ -64,6 +81,7 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addLayout(buttonsLayout1);
     mainLayout->addLayout(runNLayout);
     mainLayout->addLayout(buyLayout);
+    mainLayout->addLayout(sellLayout);
     mainLayout->addWidget(summaryButton);
     mainLayout->addWidget(new QLabel("Log:", this));
     mainLayout->addWidget(logView);
@@ -91,6 +109,15 @@ MainWindow::MainWindow(QWidget *parent)
         this, [this]() { onBuyClicked(); });
 
     QObject::connect(
+        sellButton, &QPushButton::clicked,
+        this, [this]() { onSellClicked(); });
+
+    QObject::connect(
+        sellAllButton, &QPushButton::clicked,
+        this, [this]() { onSellAllClicked(); });
+
+
+    QObject::connect(
         summaryButton, &QPushButton::clicked,
         this, [this]() { onSummaryClicked(); });
 
@@ -114,10 +141,10 @@ void MainWindow::appendLog(const QString &text)
 
 void MainWindow::onStrategyChanged(int index)
 {
-    // combo index 0,1,2 -> strategies 1,2,3
-    int stratNumber = index + 1;
-    robot->setStrategy(stratNumber);
-    appendLog(QString("Strategy set to %1").arg(stratNumber));
+    if (!robot)
+        return;
+    robot->setStrategy(index);
+    appendLog("Strategy changed to: " + strategyCombo->currentText());
 }
 
 void MainWindow::onNextDayClicked()
@@ -151,10 +178,41 @@ void MainWindow::onBuyClicked()
         appendLog("Ticker empty; nothing bought.");
         return;
     }
+    qticker = qticker.toUpper();
+    std::string ticker = qticker.toStdString();
 
     robot->buy(qticker.toStdString(), qty);
     appendLog(QString("Manual buy: %1 x %2").arg(qticker).arg(qty));
 }
+void MainWindow::onSellClicked()
+{
+    if (!robot) return;
+
+    QString qticker = sellTickerEdit->text();
+    int qty = sellQtySpin->value();
+
+    if (qticker.isEmpty()) {
+        appendLog("Sell ticker is empty; nothing sold.");
+        return;
+    }
+    qticker = qticker.toUpper();
+    std::string ticker = qticker.toStdString();
+
+    robot->sell(ticker, qty);
+
+    appendLog(QString("Manual sell: %1 x %2").arg(qticker).arg(qty));
+}
+
+void MainWindow::onSellAllClicked()
+{
+    if (!robot) return;
+
+    // call Robot::sellAll()
+    robot->sellAll();
+
+    appendLog("Sell All: closed all positions.");
+}
+
 
 void MainWindow::onSummaryClicked()
 {

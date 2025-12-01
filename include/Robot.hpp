@@ -19,10 +19,13 @@ class Robot : public AbstractRobot {
     private:
         StockMarket *stocks;
         AbstractStrategy *strat;
+        std::string strategyName;
     public:
         Robot() {
             balance = 100000;
             stockBalance = 0;
+            stocks = nullptr;
+            strat = nullptr;
         }
         void getStockData(StockMarket *data) {
             stocks = data;
@@ -74,28 +77,47 @@ class Robot : public AbstractRobot {
 
         // Setting strategy and storing in "AbstractStrategy *strat"
         void setStrategy(int type) {
-            if(strat) {
+            if (strat) {
+                if (stocks) {
+                    stocks->detach(strat);
+                }
                 delete strat;
                 strat = nullptr;
             }
             switch(type) {
                 case 0:
-                    strat = new StrategyRandom();
-                    stocks->attach(strat);
+                    strat = new StrategyBasic();
+                    strategyName = "Basic";
                     break;
                 case 1:
                     strat = new StrategyLowRisk();
-                    stocks->attach(strat);
+                    strategyName = "Low";
+                    break;
+                case 2:
+                    strat = new StrategyRandom();
+                    strategyName = "Random";
                     break;
                 default:
                     strat = new StrategyBasic();
-                    stocks->attach(strat);
+                    strategyName = "Basic";
+                    break;
             }
+            if (stocks && strat) {
+                stocks->attach(strat);
+            }
+            std::cout << "[Robot] Strategy set to " << strategyName << std::endl;
         }
 
         // Using "AbstractStrategy *strat" to call its respective algorithm
         // Stock quantity "1" just for simplicity
         void executeStrat() {
+            if (!strat || !stocks) {
+                std::cout << "[Robot] Strategy or stocks not set!" << std::endl;
+                return;
+            }
+
+            std::cout << "\n[Robot] Executing strategy '" << strategyName << "' for date " << stocks->date << std::endl;
+
             vector<string> temp = strat->getStock(0);
             if(!temp.empty()) {
                 for(int i = 0; i < temp.size(); i++) {
@@ -134,31 +156,21 @@ class Robot : public AbstractRobot {
             cout << "Balance: " << balance << endl;
             cout << "Stocks: " << stockBalance << endl;
 
-            cout << "=== PORTFOLIO ===" << endl;
-            cout << left << setw(10) << "Ticker" 
-                    << setw(10) << "Quantity" 
-                    << setw(12) << "Price" 
-                    << setw(12) << "Date" 
-                    << setw(10) << "Action" << endl;
-            cout << string(54, '-') << endl;
-            
-            for (vector<tuple<string, int, double, string, string>>::const_iterator it = portfolio.begin(); 
-                it != portfolio.end(); ++it) {
-                
-                string ticker = get<0>(*it);
-                int quantity = get<1>(*it);
-                double price = get<2>(*it);
-                string date = get<3>(*it);
-                string action = get<4>(*it);
-    
-                cout << left 
-                        << setw(10) << ticker 
-                        << setw(10) << quantity 
-                        << setw(12) << fixed << setprecision(2) << price 
-                        << setw(12) << date 
-                        << setw(10) << action << endl;
+            cout << "=== CURRENT HOLDINGS ===" << endl;
+            cout << left << setw(10) << "Ticker"
+                << setw(10) << "Quantity" << endl;
+            cout << string(20, '-') << endl;
+
+            for (const auto& p : wallet) {
+                if (p.second > 0) {
+                    cout << left
+                        << setw(10) << p.first
+                        << setw(10) << p.second
+                        << endl;
+                }
             }
         }
+
 };
 
 

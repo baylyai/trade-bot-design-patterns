@@ -121,6 +121,7 @@ public:
     void attach(AbstractStrategy* strat) {
         observers.push_back(strat);
     }
+    
 
     void detach(AbstractStrategy* strat) {
         observers.erase(remove(observers.begin(), observers.end(), strat), observers.end());
