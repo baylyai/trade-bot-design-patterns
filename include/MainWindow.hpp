@@ -9,6 +9,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QLabel>
 
 #include "RobotFactory.hpp"
 #include "StockData.hpp"
@@ -36,6 +37,7 @@ private:
     AbstractRobot        *robot;
     StockMarket           stocks;
 
+    QLabel *dateLabel;
     QComboBox   *strategyCombo;
     QPushButton *nextDayButton;
     QPushButton *executeStratButton;

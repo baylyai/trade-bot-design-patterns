@@ -16,6 +16,16 @@ MainWindow::MainWindow(QWidget *parent)
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
+       // added this
+    dateLabel = new QLabel(this);
+    dateLabel->setText(QString("Current Date: %1").arg(QString::fromStdString(stocks.date)));
+
+    QHBoxLayout *statusLayout = new QHBoxLayout;
+    statusLayout->addWidget(dateLabel);
+    statusLayout->addStretch();
+    mainLayout->addLayout(statusLayout);
+//
+  
     // Strategy row
     QHBoxLayout *strategyLayout = new QHBoxLayout;
     strategyCombo = new QComboBox(this);
@@ -23,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     strategyCombo->addItem("Low Risk (Strategy 2)");
     strategyCombo->addItem("Random (Strategy 3)");
     strategyLayout->addWidget(strategyCombo);
+
 
     // Buttons row
     QHBoxLayout *buttonsLayout1 = new QHBoxLayout;
@@ -130,6 +141,12 @@ void MainWindow::onStrategyChanged(int index)
 void MainWindow::onNextDayClicked()
 {
     stocks.updateDate();
+
+    //added this
+    dateLabel->setText(QString("Current Date: %1").arg(QString::fromStdString(stocks.date)));
+    appendLog(QString("Advanced one day tp %1.").arg(QString::fromStdString(stocks.date)));
+    //
+
     appendLog("Advanced one day.");
 }
 
@@ -145,7 +162,14 @@ void MainWindow::onRunNDaysClicked()
     for (int i = 0; i < days; ++i) {
         stocks.updateDate();
         robot->executeStrat();
+        robot->summary();
     }
+
+   // added this
+    dateLabel->setText(QString("Current Date: %1").arg(QString::fromStdString(stocks.date)));
+    appendLog(QString("Ran strategy for %1 days. Final date: %2.").arg(days).arg(QString::fromStdString(stocks.date)));
+    //
+
     appendLog(QString("Ran strategy for %1 days.").arg(days));
 }
 
@@ -196,5 +220,6 @@ void MainWindow::onSellAllClicked()
 void MainWindow::onSummaryClicked()
 {
     robot->summary();
-    appendLog("Summary printed to console.");
+    QString test = QString::fromStdString(robot->logSummary);
+    appendLog(test);
 }

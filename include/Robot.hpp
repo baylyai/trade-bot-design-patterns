@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <string>
+#include <sstream>
 #include "AbstractRobot.hpp"
 #include "StockData.hpp"
 #include "StrategyLowRisk.hpp"
@@ -45,7 +46,7 @@ class Robot : public AbstractRobot {
             }
             updateStockBalance();
         }
-        void buy(string ticker, uint quant) {
+        void buy(string ticker, int quant) {
             // check price
             double openPrice = stocks->marketData[ticker][stocks->date];
 
@@ -64,7 +65,7 @@ class Robot : public AbstractRobot {
 
         }
 
-        void sell(string ticker, uint quant) {
+        void sell(string ticker, int quant) {
             double openPrice = stocks->marketData[ticker][stocks->date];
             // check has stock
             if(wallet[ticker] >= quant) {
@@ -150,6 +151,7 @@ class Robot : public AbstractRobot {
         */
 
         void summary() {
+            
             cout << "\n";
             cout << "Date: " << stocks->date << endl;
             cout << "=== BALANCE ===" << endl;
@@ -169,6 +171,32 @@ class Robot : public AbstractRobot {
                         << endl;
                 }
             }
+            stringstream logStream;
+            logStream << "\n";
+            logStream << "Date: " << stocks->date << std::endl;
+            logStream << "=== BALANCE ===" << std::endl;
+            logStream << "Balance: " << balance << std::endl;
+            logStream << "Stocks: " << stockBalance << std::endl;
+
+            logStream << "=== CURRENT HOLDINGS ===" << std::endl;
+            
+            // Note: The formatting manipulators (setw, left) work directly with stringstream
+            logStream << std::left << std::setw(10) << "Ticker"
+                    << std::setw(10) << "Quantity" << std::endl;
+            logStream << std::string(20, '-') << std::endl;
+
+            for (const auto& p : wallet) {
+                if (p.second > 0) {
+                    logStream << std::left
+                            << std::setw(15) << p.first
+                            << std::setw(15) << p.second
+                            << std::endl;
+                }
+            }
+
+            // 3. Get the resulting string and pass it to appendLog
+            string logString = logStream.str();
+            logSummary = logString;
         }
 
 };

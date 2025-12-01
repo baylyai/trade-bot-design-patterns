@@ -33,7 +33,7 @@ public:
     vector<StockData> stockDataList;
     StockMarket() {
         // lets say the current date is:
-        date = "2020-06-23";
+        date = "2020-01-02";
         
         string filename = "World-Stock-Prices-Dataset.csv";
 
