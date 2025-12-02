@@ -7,15 +7,23 @@ using namespace std;
 
 class StrategyLowRisk : public AbstractStrategy {
     public:
-        StrategyLowRisk() {
-       
-        }
         ~StrategyLowRisk() {}
         vector<string> getStock(int type) {
-            return buyTickers;
+            switch(type) {
+                case 0:
+                    return buyTickers;
+                default:
+                    return sellTickers;
+            }
         }
         void setStocks(vector<string> tickers, int type) {
-            buyTickers = tickers;
+            switch(type) {
+                case 0:
+                    buyTickers = tickers;
+                    break;
+                default:
+                    sellTickers = tickers;
+            }
         }
 };
 

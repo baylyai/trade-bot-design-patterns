@@ -61,6 +61,7 @@ class Robot : public AbstractRobot {
                 } else {
                     wallet[ticker] += quant;
                 }
+                cout << "Stock " << ticker << " BOUGHT " << quant << endl;
             }
 
         }
@@ -73,6 +74,7 @@ class Robot : public AbstractRobot {
                 balance += (openPrice * quant);
                 //stockBalance -= (openPrice * quant);
                 portfolio.push_back({ticker, quant, openPrice, stocks->date, "SOLD"});
+                cout << "Stock " << ticker << " SOLD " << quant << endl;
             }
         }
 
@@ -171,13 +173,14 @@ class Robot : public AbstractRobot {
                         << endl;
                 }
             }
+
             stringstream logStream;
             logStream << "\n";
             logStream << "Date: " << stocks->date << std::endl;
             logStream << "=== BALANCE ===" << std::endl;
             logStream << "Balance: " << balance << std::endl;
-            logStream << "Stocks: " << stockBalance << std::endl;
-
+            logStream << "$ in Stocks: " << stockBalance << std::endl;
+            logStream << "Total Profit: " << ((balance + stockBalance) - 100000) << std::endl;
             logStream << "=== CURRENT HOLDINGS ===" << std::endl;
             
             // Note: The formatting manipulators (setw, left) work directly with stringstream

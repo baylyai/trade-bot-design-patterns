@@ -24,6 +24,7 @@ private:
     vector<StockData> Stocks;
 public:
     int indexDate;
+    int elapsedDays;
     string date;
     vector<string> dates;
     vector<string> allTickers;
@@ -39,6 +40,7 @@ public:
 
         // # of rows to read in csv up to 300,000
         int records = 300000;
+        elapsedDays = 0;
 
         ifstream file(filename);
         if (!file.is_open()) {
@@ -117,6 +119,7 @@ public:
         checkStocks();
         sellStocks();
         indexDate -= 1;
+        elapsedDays += 1;
     }
     void attach(AbstractStrategy* strat) {
         observers.push_back(strat);

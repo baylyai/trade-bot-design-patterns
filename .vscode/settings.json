@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "qhboxlayout": "cpp",
-        "new": "cpp"
+        "new": "cpp",
+        "ostream": "cpp",
+        "iostream": "cpp"
     }
 }

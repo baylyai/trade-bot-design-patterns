@@ -16,15 +16,19 @@ MainWindow::MainWindow(QWidget *parent)
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
-       // added this
+    //**** 
     dateLabel = new QLabel(this);
     dateLabel->setText(QString("Current Date: %1").arg(QString::fromStdString(stocks.date)));
 
+    elapsedDaysLabel = new QLabel(this); // Assuming this is declared in MainWindow.hpp
+    elapsedDaysLabel->setText(QString("Elapsed Days: %1").arg(stocks.elapsedDays));
+
     QHBoxLayout *statusLayout = new QHBoxLayout;
     statusLayout->addWidget(dateLabel);
+    statusLayout->addWidget(elapsedDaysLabel);
     statusLayout->addStretch();
     mainLayout->addLayout(statusLayout);
-//
+
   
     // Strategy row
     QHBoxLayout *strategyLayout = new QHBoxLayout;
@@ -135,19 +139,20 @@ void MainWindow::onStrategyChanged(int index)
     if (!robot)
         return;
     robot->setStrategy(index);
+    appendLog("Starting Date: " + QString::fromStdString(stocks.date));
     appendLog("Strategy changed to: " + strategyCombo->currentText());
 }
 
 void MainWindow::onNextDayClicked()
 {
     stocks.updateDate();
-
-    //added this
+    robot->updateStockBalance();
+    elapsedDaysLabel->setText(QString("Elapsed Days: %1").arg(stocks.elapsedDays));
+    //****
     dateLabel->setText(QString("Current Date: %1").arg(QString::fromStdString(stocks.date)));
     appendLog(QString("Advanced one day tp %1.").arg(QString::fromStdString(stocks.date)));
-    //
+    
 
-    appendLog("Advanced one day.");
 }
 
 void MainWindow::onExecuteStratClicked()
@@ -165,12 +170,11 @@ void MainWindow::onRunNDaysClicked()
         robot->summary();
     }
 
-   // added this
+    //***
     dateLabel->setText(QString("Current Date: %1").arg(QString::fromStdString(stocks.date)));
+    elapsedDaysLabel->setText(QString("Elapsed Days: %1").arg(stocks.elapsedDays));
     appendLog(QString("Ran strategy for %1 days. Final date: %2.").arg(days).arg(QString::fromStdString(stocks.date)));
-    //
-
-    appendLog(QString("Ran strategy for %1 days.").arg(days));
+    
 }
 
 void MainWindow::onBuyClicked()
@@ -221,5 +225,7 @@ void MainWindow::onSummaryClicked()
 {
     robot->summary();
     QString test = QString::fromStdString(robot->logSummary);
+
     appendLog(test);
+
 }

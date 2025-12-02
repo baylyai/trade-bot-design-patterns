@@ -37,6 +37,7 @@ private:
     AbstractRobot        *robot;
     StockMarket           stocks;
 
+    QLabel *elapsedDaysLabel;
     QLabel *dateLabel;
     QComboBox   *strategyCombo;
     QPushButton *nextDayButton;
