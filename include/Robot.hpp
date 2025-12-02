@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include "AbstractRobot.hpp"
 #include "StockData.hpp"
 #include "StrategyLowRisk.hpp"
@@ -21,6 +22,7 @@ class Robot : public AbstractRobot {
         StockMarket *stocks;
         AbstractStrategy *strat;
         std::string strategyName;
+        std::string tradeLogFile = "trades_log.csv";
     public:
         Robot() {
             balance = 100000;
@@ -62,6 +64,7 @@ class Robot : public AbstractRobot {
                     wallet[ticker] += quant;
                 }
                 cout << "Stock " << ticker << " BOUGHT " << quant << endl;
+                writeTradeToFile(ticker, quant, openPrice, stocks->date, "BOUGHT");
             }
 
         }
@@ -75,6 +78,7 @@ class Robot : public AbstractRobot {
                 //stockBalance -= (openPrice * quant);
                 portfolio.push_back({ticker, quant, openPrice, stocks->date, "SOLD"});
                 cout << "Stock " << ticker << " SOLD " << quant << endl;
+                writeTradeToFile(ticker, quant, openPrice, stocks->date, "SOLD");
             }
         }
 
@@ -138,6 +142,32 @@ class Robot : public AbstractRobot {
             }
             updateStockBalance();
         }
+
+        void writeTradeToFile(const std::string &ticker,
+                            int quant,
+                            double price,
+                            const std::string &date,
+                            const std::string &action)
+        {
+            std::ofstream file;
+            // Open the file in append mode so we add at the end
+            file.open(tradeLogFile, std::ios::app);
+
+            if (!file.is_open()) {
+                std::cout << "Could not open trade log file: " << tradeLogFile << std::endl;
+                return;
+            }
+
+            // Simple CSV format: date,action,ticker,quantity,price
+            file << date << ","
+                << action << ","
+                << ticker << ","
+                << quant << ","
+                << price << std::endl;
+
+            file.close();
+        }
+
 
         /*
         // Simulating day to day trading based on unique days in our data
