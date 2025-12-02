@@ -16,11 +16,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
-    //**** 
     dateLabel = new QLabel(this);
     dateLabel->setText(QString("Current Date: %1").arg(QString::fromStdString(stocks.date)));
 
-    elapsedDaysLabel = new QLabel(this); // Assuming this is declared in MainWindow.hpp
+    elapsedDaysLabel = new QLabel(this);
     elapsedDaysLabel->setText(QString("Elapsed Days: %1").arg(stocks.elapsedDays));
 
     QHBoxLayout *statusLayout = new QHBoxLayout;
@@ -148,7 +147,6 @@ void MainWindow::onNextDayClicked()
     stocks.updateDate();
     robot->updateStockBalance();
     elapsedDaysLabel->setText(QString("Elapsed Days: %1").arg(stocks.elapsedDays));
-    //****
     dateLabel->setText(QString("Current Date: %1").arg(QString::fromStdString(stocks.date)));
     appendLog(QString("Advanced one day tp %1.").arg(QString::fromStdString(stocks.date)));
     
@@ -170,7 +168,6 @@ void MainWindow::onRunNDaysClicked()
         robot->summary();
     }
 
-    //***
     dateLabel->setText(QString("Current Date: %1").arg(QString::fromStdString(stocks.date)));
     elapsedDaysLabel->setText(QString("Elapsed Days: %1").arg(stocks.elapsedDays));
     appendLog(QString("Ran strategy for %1 days. Final date: %2.").arg(days).arg(QString::fromStdString(stocks.date)));

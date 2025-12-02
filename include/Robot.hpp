@@ -1,5 +1,6 @@
 #ifndef ROBOT_H
 #define ROBOT_H
+
 #include <unordered_map>
 #include <vector>
 #include <iostream>
@@ -8,12 +9,14 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <cstdio>
+#include <ctime>
+
 #include "AbstractRobot.hpp"
 #include "StockData.hpp"
 #include "StrategyLowRisk.hpp"
 #include "StrategyRandom.hpp"
 #include "StrategyBasic.hpp"
-
 
 using namespace std;
 
@@ -21,8 +24,10 @@ class Robot : public AbstractRobot {
     private:
         StockMarket *stocks;
         AbstractStrategy *strat;
-        std::string strategyName;
-        std::string tradeLogFile = "trades_log.csv";
+        string strategyName;
+        string tradeLogFile = "Trades Log.csv";
+        string portfolioFile = "Trade History.txt";
+
     public:
         Robot() {
             balance = 100000;
@@ -30,59 +35,73 @@ class Robot : public AbstractRobot {
             stocks = nullptr;
             strat = nullptr;
         }
+
         void getStockData(StockMarket *data) {
             stocks = data;
         }
+
         void updateStockBalance() {
             stockBalance = 0;
-            for(const auto& ticker : wallet) {
+            for (const auto &ticker : wallet) {
                 double openPrice = stocks->marketData[ticker.first][stocks->date];
                 int quantity = ticker.second;
                 stockBalance += (openPrice * quantity);
             }
         }
+
         void sellAll() {
-            for(const auto& ticker : wallet) {
-                if(ticker.second > 0)
+            for (const auto &ticker : wallet) {
+                if (ticker.second > 0) {
                     sell(ticker.first, ticker.second);
+                }
             }
             updateStockBalance();
         }
+
         void buy(string ticker, int quant) {
             // check price
             double openPrice = stocks->marketData[ticker][stocks->date];
 
             // check can afford
-            if((quant * openPrice) < balance) {
+            if ((quant * openPrice) < balance) {
                 balance -= (openPrice * quant);
-                //stockBalance += (openPrice * quant);
-                // keeping track of history
+
+                // record trade in memory
                 portfolio.push_back({ticker, quant, openPrice, stocks->date, "BOUGHT"});
-                if(!wallet[ticker]) {
+
+                // update wallet
+                if (!wallet[ticker]) {
                     wallet[ticker] = quant;
                 } else {
                     wallet[ticker] += quant;
                 }
+
                 cout << "Stock " << ticker << " BOUGHT " << quant << endl;
+
+                // also log to CSV
                 writeTradeToFile(ticker, quant, openPrice, stocks->date, "BOUGHT");
             }
-
         }
 
         void sell(string ticker, int quant) {
             double openPrice = stocks->marketData[ticker][stocks->date];
+
             // check has stock
-            if(wallet[ticker] >= quant) {
+            if (wallet[ticker] >= quant) {
                 wallet[ticker] -= quant;
                 balance += (openPrice * quant);
-                //stockBalance -= (openPrice * quant);
+
+                // record trade in memory
                 portfolio.push_back({ticker, quant, openPrice, stocks->date, "SOLD"});
+
                 cout << "Stock " << ticker << " SOLD " << quant << endl;
+
+                // also log to CSV
                 writeTradeToFile(ticker, quant, openPrice, stocks->date, "SOLD");
             }
         }
 
-        // Setting strategy and storing in "AbstractStrategy *strat"
+        // Set trading strategy
         void setStrategy(int type) {
             if (strat) {
                 if (stocks) {
@@ -91,99 +110,84 @@ class Robot : public AbstractRobot {
                 delete strat;
                 strat = nullptr;
             }
-            switch(type) {
-                case 0:
-                    strat = new StrategyBasic();
-                    strategyName = "Basic";
-                    break;
-                case 1:
-                    strat = new StrategyLowRisk();
-                    strategyName = "Low";
-                    break;
-                case 2:
-                    strat = new StrategyRandom();
-                    strategyName = "Random";
-                    break;
-                default:
-                    strat = new StrategyBasic();
-                    strategyName = "Basic";
-                    break;
+
+            switch (type) {
+            case 0:
+                strat = new StrategyBasic();
+                strategyName = "Basic";
+                break;
+            case 1:
+                strat = new StrategyLowRisk();
+                strategyName = "Low";
+                break;
+            case 2:
+                strat = new StrategyRandom();
+                strategyName = "Random";
+                break;
+            default:
+                strat = new StrategyBasic();
+                strategyName = "Basic";
+                break;
             }
+
             if (stocks && strat) {
                 stocks->attach(strat);
             }
-            std::cout << "[Robot] Strategy set to " << strategyName << std::endl;
+
+            cout << "[Robot] Strategy set to " << strategyName << endl;
         }
 
-        // Using "AbstractStrategy *strat" to call its respective algorithm
-        // Stock quantity "1" just for simplicity
+        // Run current strategy for the day
         void executeStrat() {
             if (!strat || !stocks) {
-                std::cout << "[Robot] Strategy or stocks not set!" << std::endl;
+                cout << "[Robot] Strategy or stocks not set!" << endl;
                 return;
             }
 
-            std::cout << "\n[Robot] Executing strategy '" << strategyName << "' for date " << stocks->date << std::endl;
+            cout << "\n[Robot] Executing strategy '" << strategyName
+                << "' for date " << stocks->date << endl;
 
+            // type 0 = buy list
             vector<string> temp = strat->getStock(0);
-            if(!temp.empty()) {
-                for(int i = 0; i < temp.size(); i++) {
+            if (!temp.empty()) {
+                for (int i = 0; i < temp.size(); i++) {
                     buy(temp[i], 1);
                 }
             }
+
+            // type 1 = sell list
             temp = strat->getStock(1);
-            if(!temp.empty()) {
-                for(int i = 0; i < temp.size(); i++) {
+            if (!temp.empty()) {
+                for (int i = 0; i < temp.size(); i++) {
                     int quantity = wallet[temp[i]];
-                    if(wallet[temp[i]] && (quantity > 0)) {
+                    if (wallet[temp[i]] && (quantity > 0)) {
                         sell(temp[i], quantity);
                     }
                 }
             }
+
             updateStockBalance();
         }
 
-        void writeTradeToFile(const std::string &ticker,
-                            int quant,
+        // CSV logger for each trade
+        void writeTradeToFile(const string &ticker,
+                            int quantity,
                             double price,
-                            const std::string &date,
-                            const std::string &action)
+                            const string &date,
+                            const string &action)
         {
-            std::ofstream file;
-            // Open the file in append mode so we add at the end
-            file.open(tradeLogFile, std::ios::app);
+            ofstream file(tradeLogFile, ios::app);
 
             if (!file.is_open()) {
-                std::cout << "Could not open trade log file: " << tradeLogFile << std::endl;
+                cout << "Could not open trade log file: " << tradeLogFile << endl;
                 return;
             }
 
-            // Simple CSV format: date,action,ticker,quantity,price
-            file << date << ","
-                << action << ","
-                << ticker << ","
-                << quant << ","
-                << price << std::endl;
-
-            file.close();
+            file << date   << "," << action << "," << ticker << "," << quantity  << "," << price  << endl;
         }
 
-
-        /*
-        // Simulating day to day trading based on unique days in our data
-        void updateDate() {
-            if (indexDate < 0 || indexDate >= dates.size() - 1) {
-                cout << "Out of bounds" << endl; // or throw an exception
-            } else {
-                date = dates[indexDate - 1];
-                vector<StockData> stonk = dateGroups[date];
-                indexDate -= 1;
-            }
-        }
-        */
-
+        // Print summary to console and build logSummary string
         void summary() {
-            
             cout << "\n";
             cout << "Date: " << stocks->date << endl;
             cout << "=== BALANCE ===" << endl;
@@ -195,7 +199,7 @@ class Robot : public AbstractRobot {
                 << setw(10) << "Quantity" << endl;
             cout << string(20, '-') << endl;
 
-            for (const auto& p : wallet) {
+            for (const auto &p : wallet) {
                 if (p.second > 0) {
                     cout << left
                         << setw(10) << p.first
@@ -204,68 +208,67 @@ class Robot : public AbstractRobot {
                 }
             }
 
+            // Build logSummary string for GUI
             stringstream logStream;
             logStream << "\n";
-            logStream << "Date: " << stocks->date << std::endl;
-            logStream << "=== BALANCE ===" << std::endl;
-            logStream << "Balance: " << balance << std::endl;
-            logStream << "$ in Stocks: " << stockBalance << std::endl;
-            logStream << "Total Profit: " << ((balance + stockBalance) - 100000) << std::endl;
-            logStream << "=== CURRENT HOLDINGS ===" << std::endl;
-            
-            // Note: The formatting manipulators (setw, left) work directly with stringstream
-            logStream << std::left << std::setw(10) << "Ticker"
-                    << std::setw(10) << "Quantity" << std::endl;
-            logStream << std::string(20, '-') << std::endl;
+            logStream << "Date: " << stocks->date << endl;
+            logStream << "=== BALANCE ===" << endl;
+            logStream << "Balance: " << balance << endl;
+            logStream << "$ in Stocks: " << stockBalance << endl;
+            logStream << "Total Profit: " << ((balance + stockBalance) - 100000) << endl;
+            logStream << "=== CURRENT HOLDINGS ===" << endl;
 
-            for (const auto& p : wallet) {
+            logStream << left << setw(10) << "Ticker"
+                    << setw(10) << "Quantity" << endl;
+            logStream << string(20, '-') << endl;
+
+            for (const auto &p : wallet) {
                 if (p.second > 0) {
-                    logStream << std::left
-                            << std::setw(15) << p.first
-                            << std::setw(15) << p.second
-                            << std::endl;
+                    logStream << left
+                            << setw(15) << p.first
+                            << setw(15) << p.second
+                            << endl;
                 }
             }
 
-            // 3. Get the resulting string and pass it to appendLog
             string logString = logStream.str();
             logSummary = logString;
         }
 
+        // Write full trade history to a unique TXT file
         void printPortfolioToFile() {
-            string filename = "Trade_History.txt";
-            ofstream outFile;
-            try {
-                    outFile.open(filename);
-                    outFile << "Ticker, Quantity, Price, Date, Transaction Type\n";
+            const char *filename = portfolioFile.c_str();
 
-                    for (const auto& transaction : portfolio) {
-                        // Write elements separated by commas
-                        outFile << get<0>(transaction) << ", "    // string: Ticker
-                                << get<1>(transaction) << ", "    // int: Quantity
-                                << get<2>(transaction) << ", "    // double: Price
-                                << get<3>(transaction) << ", "    // string: Date
-                                << get<4>(transaction) << "\n";   // string: "BOUGHT" or "SOLD"
-                    }
-                    outFile << "\n--- Summary ---\n";
-                    outFile << "Elapsed Days: " << stocks->elapsedDays << "\n";
-                    outFile << "Total Profit/Loss: " << fixed << setprecision(2) << ((balance + stockBalance) - 100000) << "\n";
-                    
-                    outFile.close();
+            FILE *f = fopen(filename, "w");
+            if (!f) {
+                cout << "Could not open " << filename << " for writing.\n";
+                return;
+            }
 
-                    cout << "Successfully wrote trade data to " << filename << endl;
+            // Header
+            fprintf(f, "Ticker,Quantity,Price,Date,TransactionType\n");
 
-                } catch (const ofstream::failure& e) {
-                    // Catch specific file stream exceptions (e.g., permission denied, disk full)
-                    cerr << "File I/O Error writing to " << filename << ": " << e.what() << endl;
-                    cerr << "Error code: " << e.code() << endl;
-                } catch (const exception& e) {
-                    // Catch any other standard exceptions
-                    cerr << "An unexpected error occurred: " << e.what() << endl;
-                }
+            for (size_t i = 0; i < portfolio.size(); ++i) {
+                const auto &transaction = portfolio[i];
+
+                string ticker  = get<0>(transaction);
+                int    quantity = get<1>(transaction);
+                double price    = get<2>(transaction);
+                string date     = get<3>(transaction);
+                string action   = get<4>(transaction);
+
+                fprintf(f, "%s,%d,%f,%s,%s\n",
+                        ticker.c_str(),
+                        quantity,
+                        price,
+                        date.c_str(),
+                        action.c_str());
+            }
+
+            fclose(f);
+
+            cout << "Trade history written to " << filename << endl;
         }
-
 };
-
 
 #endif
