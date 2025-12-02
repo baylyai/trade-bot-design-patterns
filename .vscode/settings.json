@@ -3,6 +3,8 @@
         "qhboxlayout": "cpp",
         "new": "cpp",
         "ostream": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "iomanip": "cpp",
+        "fstream": "cpp"
     }
 }

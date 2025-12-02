@@ -227,5 +227,5 @@ void MainWindow::onSummaryClicked()
     QString test = QString::fromStdString(robot->logSummary);
 
     appendLog(test);
-
+    robot->printPortfolioToFile();
 }

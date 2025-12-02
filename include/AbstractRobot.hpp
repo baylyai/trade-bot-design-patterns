@@ -19,6 +19,7 @@ class AbstractRobot {
         virtual void getStockData(StockMarket*) = 0;
         virtual void updateStockBalance() = 0;
         virtual void sellAll() = 0;
+        virtual void printPortfolioToFile() = 0;
         string logSummary;
     protected:
         double balance;

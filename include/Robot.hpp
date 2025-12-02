@@ -202,6 +202,39 @@ class Robot : public AbstractRobot {
             logSummary = logString;
         }
 
+        void printPortfolioToFile() {
+            string filename = "Trade_History.txt";
+            ofstream outFile;
+            try {
+                    outFile.open(filename);
+                    outFile << "Ticker, Quantity, Price, Date, Transaction Type\n";
+
+                    for (const auto& transaction : portfolio) {
+                        // Write elements separated by commas
+                        outFile << get<0>(transaction) << ", "    // string: Ticker
+                                << get<1>(transaction) << ", "    // int: Quantity
+                                << get<2>(transaction) << ", "    // double: Price
+                                << get<3>(transaction) << ", "    // string: Date
+                                << get<4>(transaction) << "\n";   // string: "BOUGHT" or "SOLD"
+                    }
+                    outFile << "\n--- Summary ---\n";
+                    outFile << "Elapsed Days: " << stocks->elapsedDays << "\n";
+                    outFile << "Total Profit/Loss: " << fixed << setprecision(2) << ((balance + stockBalance) - 100000) << "\n";
+                    
+                    outFile.close();
+
+                    cout << "Successfully wrote trade data to " << filename << endl;
+
+                } catch (const ofstream::failure& e) {
+                    // Catch specific file stream exceptions (e.g., permission denied, disk full)
+                    cerr << "File I/O Error writing to " << filename << ": " << e.what() << endl;
+                    cerr << "Error code: " << e.code() << endl;
+                } catch (const exception& e) {
+                    // Catch any other standard exceptions
+                    cerr << "An unexpected error occurred: " << e.what() << endl;
+                }
+        }
+
 };
 
 
