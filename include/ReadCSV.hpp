@@ -1,58 +1,74 @@
 #ifndef READCSV_HPP
 #define READCSV_HPP
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <sstream>
-#include <unordered_map>
 #include "StockData.hpp"
+
 using namespace std;
 
+// split one line of text by commas
+vector<string> splitLineByComma(const string &line)
+{
+    vector<string> pieces;
+    string piece;
+    stringstream lineStream(line);
+    while (getline(lineStream, piece, ',')) {
+        pieces.push_back(piece);
+    }
 
+    return pieces;
+}
 
-// Function 1: Read CSV and populate StockData objects
-vector<StockData> readCSVToStockData(const string& filename, const int records) {
+// Read CSV file and return up to records row
+vector<StockData> readCSVToStockData(const string &filename, int records)
+{
     vector<StockData> stockDataList;
-    
+
     ifstream file(filename);
     if (!file.is_open()) {
-        cout << "Error opening file!" << endl;
+        cout << "Error opening file: " << filename << endl;
         return stockDataList;
     }
-    
-    string line;
-    // skip first row (headers)
-    getline(file, line); 
-    
-    // row counter
     int recordCount = 0;
-    
-    // get specified number of rows
-    while (getline(file, line) && recordCount < records) {
-        
-        // storing the line in ss
-        stringstream ss(line);
+    string line;
+    getline(file, line);
 
-        // tokenizing
-        vector<string> tokens;
-        string token;
-        while (getline(ss, token, ',')) {
-            tokens.push_back(token);
+    // read each remaining line until record limit
+    while (getline(file, line) && recordCount < records) {
+
+        // split line into columns based on commas
+        vector<string> columns = splitLineByComma(line);
+
+        if (columns.size() < 8) {
+            continue;
         }
-        
-        // only grabbing specific attributes
         StockData stock;
-        stock.Date = tokens[0].substr(0, tokens[0].find(' '));
-        stock.Open = stod(tokens[1]);
-        stock.Close = stod(tokens[4]);
-        stock.Brand_Name = tokens[6];
-        stock.Ticker = tokens[7];
-        
+
+        string fullDate = columns[0];
+        size_t spacePos = fullDate.find(' ');
+        if (spacePos != string::npos) {
+            stock.Date = fullDate.substr(0, spacePos);
+        } else {
+            stock.Date = fullDate;
+        }
+
+        // string to decimal
+        stock.Open  = stod(columns[1]); // Open price
+        stock.Close = stod(columns[4]); // Close price
+
+        // Strings for name and ticker
+        stock.Brand_Name = columns[6];  // Company/brand name
+        stock.Ticker     = columns[7];  // Stock ticker
+
+        // Add stock to list
         stockDataList.push_back(stock);
         recordCount++;
     }
-    
+
     file.close();
     return stockDataList;
 }

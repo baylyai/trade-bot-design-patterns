@@ -276,7 +276,7 @@ public:
         return Data;
     }
 
-    // Function 2: Group StockData objects by ticker into hash map
+    // Group StockData objects by ticker into hash map
     unordered_map<string, vector<StockData>> groupStockDataByTicker(const vector<StockData>& stockDataList) {
         unordered_map<string, vector<StockData>> tickerGroups;
         
@@ -287,7 +287,7 @@ public:
         return tickerGroups;
     }
 
-    // Function 3: Group StockData objects by date into hash map
+    // Group StockData objects by date into hash map
     unordered_map<string, vector<StockData>> groupStockDataByDate(const vector<StockData>& stockDataList) {
         unordered_map<string, vector<StockData>> dateGroups;
         
@@ -299,15 +299,7 @@ public:
     }
 
     void displayDateSummary(const unordered_map<string, vector<StockData>>& dateGroups, const string specificDate) {
-        
-        /*
-        // Display summary by date
-        cout << "\n=== RECORDS PER DATE ===" << endl;
-        
-        for (const auto& pair : dateGroups) {
-            cout << "Date: " << pair.first << " | Records: " << pair.second.size() << endl;
-        }
-        */
+
         // Show all records for a specific date
         cout << "\n=== ALL RECORDS FOR DATE: " << specificDate << " ===" << endl;
         auto find_it = dateGroups.find(specificDate);
@@ -323,16 +315,7 @@ public:
     }
 
     void displayTickerSummary(const unordered_map<string, vector<StockData>>& tickerGroups, const string specificTicker) {
-        
-        /*
-        // Display summary by ticker
-        cout << "\n=== RECORDS PER TICKER ===" << endl;
-        
-        unordered_map<string, vector<StockData>>::const_iterator it;
-        for (it = tickerGroups.begin(); it != tickerGroups.end(); ++it) {
-            cout << "Ticker: " << it->first << " | Records: " << it->second.size() << endl;
-        }
-        */
+
         
         // Show all records for a specific ticker
         cout << "\n=== ALL RECORDS FOR TICKER: " << specificTicker << " ===" << endl;
